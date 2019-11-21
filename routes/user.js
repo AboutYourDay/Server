@@ -11,5 +11,13 @@ router.get('/:uid', (req, res) => {
     .catch(err => res.status(500).send(err));
 });
 
+// Create new User
+router.post('/', (req, res) => {
+  User.create(req.body)
+      .then(User => res.send(User))
+      .catch(err => res.status(500).send(err));
+});
+
+
 
 module.exports = router;
