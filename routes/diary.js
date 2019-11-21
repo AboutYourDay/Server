@@ -41,5 +41,15 @@ router.get('/', (req, res) => {
   }
 });
 
+// Find One by did
+router.get('/:did', (req, res) => {
+  Diary.findByDid(req.params.did)
+      .then((diary) => {
+        if (!diary) return res.status(404).send({ err: 'Diary not found' });
+        res.send(`find successfully: ${diary}`);
+      })
+      .catch(err => res.status(500).send(err));
+});
+
 
 module.exports = router;
