@@ -18,6 +18,12 @@ router.post('/', (req, res) => {
       .catch(err => res.status(500).send(err));
 });
 
+// Update by uid
+router.put('/:uid', (req, res) => {
+  User.updateByUid(req.params.uid, req.body)
+      .then(User => res.send(User))
+      .catch(err => res.status(500).send(err));
+});
 
 
 module.exports = router;
