@@ -58,5 +58,12 @@ router.post('/', (req, res) => {
       .catch(err => res.status(500).send(err));
 });
 
+// Update by did
+router.put('/:did', (req, res) => {
+  Diary.updateByDid(req.params.did, req.body)
+      .then(Diary => res.send(Diary))
+      .catch(err => res.status(500).send(err));
+});
+
 
 module.exports = router;
