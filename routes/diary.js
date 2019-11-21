@@ -51,5 +51,12 @@ router.get('/:did', (req, res) => {
       .catch(err => res.status(500).send(err));
 });
 
+// Create new Diary document
+router.post('/', (req, res) => {
+  Diary.create(req.body)
+      .then(Diary => res.send(Diary))
+      .catch(err => res.status(500).send(err));
+});
+
 
 module.exports = router;
