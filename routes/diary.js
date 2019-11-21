@@ -65,5 +65,11 @@ router.put('/:did', (req, res) => {
       .catch(err => res.status(500).send(err));
 });
 
+// Delete by did
+router.delete('/:did', (req, res) => {
+  Diary.deleteByDid(req.params.did)
+      .then(() => res.sendStatus(200))
+      .catch(err => res.status(500).send(err));
+});
 
 module.exports = router;
