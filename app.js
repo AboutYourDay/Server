@@ -18,8 +18,8 @@ mongoose
 //   .then(() => console.log("connected successful"))
 //   .catch(err => console.error(err));
 
-var indexRouter = require('./routes/diary');
-var usersRouter = require('./routes/users');
+var diariesRouter = require('./routes/diary');
+var usersRouter = require('./routes/user');
 var app = express();
 
 // view engine setup
@@ -32,7 +32,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
+app.use('/diaries', diariesRouter);
 app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
