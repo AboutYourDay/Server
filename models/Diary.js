@@ -18,12 +18,16 @@ DiarySchema.statics.create = function(payload){
 //     return this.find({});
 // };
 
+DiarySchema.statics.findByDid = function(did) {
+  return this.findOne({ did });
+};
+
 DiarySchema.statics.findByUid = function (uid) {
     return this.find({ uid });
 };
 
-DiarySchema.statics.findByDid = function (did) {
-    return this.findOne({ did });
+DiarySchema.statics.findByEmotion = function(emotion) {
+  return this.find({ emotion });
 };
 
 DiarySchema.statics.updateByDid = function (did, payload) {
