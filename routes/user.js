@@ -26,4 +26,11 @@ router.put('/:uid', (req, res) => {
 });
 
 
+// Delete by uid
+router.delete('/:uid', (req, res) => {
+  User.deleteByUid(req.params.uid)
+      .then(() => res.sendStatus(200))
+      .catch(err => res.status(500).send(err));
+});
+
 module.exports = router;
