@@ -5,18 +5,19 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
 const mongoose = require('mongoose');
-mongoose.Promise = global.Promise
-mongoose
-    .connect("mongodb://localhost:27017/local", { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => console.log("connected successful"))
-    .catch(err => console.error(err));
-
+// mongoose.Promise = global.Promise
 // mongoose
-//   .connect(
-//     "mongodb+srv://joylish:5h39B6tiikYdd260@cluster0-uyi10.mongodb.net/test?retryWrites=true&w=majority",
-//     { useNewUrlParser: true, useUnifiedTopology: true })
-//   .then(() => console.log("connected successful"))
-//   .catch(err => console.error(err));
+//     .connect("mongodb://localhost:27017/local", { useNewUrlParser: true, useUnifiedTopology: true })
+//     .then(() => console.log("connected successful"))
+//     .catch(err => console.error(err));
+
+mongoose
+  .connect(
+    "mongodb+srv://joylish:5h39B6tiikYdd260@cluster0-uyi10.mongodb.net/aboutYourDay?retryWrites=true&w=majority",
+    { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log("connected successful"))
+  .catch(err => console.error(err));
+const conn = mongoose.connection;
 
 var diariesRouter = require('./routes/diary');
 var usersRouter = require('./routes/user');
@@ -38,6 +39,11 @@ app.use('/users', usersRouter);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
+});
+
+app.all("/*", function(req, res, next) {
+  res.header("Access-Control-allow-Origin", "*");
+  res.header("Access-Control-allow-Headers", "*");
 });
 
 // error handler
