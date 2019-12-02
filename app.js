@@ -4,9 +4,22 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+const mongoose = require('mongoose');
+mongoose.Promise = global.Promise
+mongoose
+    .connect("mongodb://localhost:27017/local", { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log("connected successful"))
+    .catch(err => console.error(err));
 
+// mongoose
+//   .connect(
+//     "mongodb+srv://joylish:5h39B6tiikYdd260@cluster0-uyi10.mongodb.net/test?retryWrites=true&w=majority",
+//     { useNewUrlParser: true, useUnifiedTopology: true })
+//   .then(() => console.log("connected successful"))
+//   .catch(err => console.error(err));
+
+var diariesRouter = require('./routes/diary');
+var usersRouter = require('./routes/user');
 var app = express();
 
 // view engine setup
@@ -19,7 +32,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
+app.use('/diaries', diariesRouter);
 app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
