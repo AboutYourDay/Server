@@ -29,7 +29,7 @@ router.get("/", (req, res) => {
       })
       .catch(err => res.json({ "success": false, "err": err }));
   } else {
-    return res.status(404).send({ "success": false, err: "Diary not found" });
+    res.status(404).send({ "success": false, err: "Diary not found" });
   }
 });
 
@@ -38,9 +38,11 @@ router.get("/:id", (req, res) => {
   Diary.findOne({ "_id": req.params.id })
     .then(diary => {
       if (!diary) {
-        return res.status(404).send({ "success": false, err: "Diary not found" });
+        res.status(404).send({ "success": false, err: "Diary not found" });
       }
-      res.json({ "success": true, "result": diary });
+      else{
+        res.json({ success: true, result: diary });
+      }
     })
     .catch(err => res.status(500).send({ "success": false, "err": err }));
 });
@@ -48,9 +50,12 @@ router.get("/:id", (req, res) => {
 // Create new Diary document
 router.post("/", (req, res) => {
   Diary.create(req.body)
-    .then(diary => diary.save())
-    .then(res.json({ "success": true }))
-    .catch(err => res.status(500).send({ "success": false, "err": err }));
+    .then(diary => {
+      return diary.save()})
+    .then(() => {res.json({ "success": true })})
+    .catch(err => {
+      res.status(500).send({ "success": false, "err": err })
+    });
 });
 
 // Update by did

@@ -1,12 +1,14 @@
 const mongoose = require('mongoose');
+const autoInc = require("mongoose-auto-increment");
+autoInc.initialize(mongoose.connection);
+
 const DiarySchema = new mongoose.Schema({
-    did: {type:String, required: true, unique: true},
-    uid: {type:String, required: true},
-    imgURL: String,
-    createdAt: Number,
-    editedAt: Number,
-    text: String,
-    emotion: String,
+  uid: { type: String, required: true },
+  url: { type: String, default: "" },
+  createdAt: { type: Number, default: "" },
+  editedAt: { type: Number, default: "" },
+  text: { type: String, default: "" },
+  emotion: { type: String, default: "" },
 });
 
 DiarySchema.statics.create = function(payload){
@@ -38,5 +40,8 @@ DiarySchema.statics.updateByDid = function (did, payload) {
 DiarySchema.statics.deleteByDid = function (did) {
     return this.remove({ did });
 };
+
+DiarySchema.plugin(autoInc.plugin, "Diary");
+mongoose.set("useCreateIndex", true);
 
 module.exports = mongoose.model('Diary', DiarySchema);

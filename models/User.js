@@ -1,9 +1,8 @@
 const mongoose = require('mongoose');
-
-mongoose.set("useCreateIndex", true);
+const autoInc = require("mongoose-auto-increment");
+autoInc.initialize(mongoose.connection);
 
 const UserSchema = new mongoose.Schema({
-    uid: {type: String, required: true, unique: true},
     did: [String],
     createdAt: {type: Number, required: true},
     lastLogin: Number,
@@ -26,4 +25,5 @@ UserSchema.statics.deleteByUid = function(uid) {
   return this.remove({ uid });
 };
 
+mongoose.set("useCreateIndex", true);
 module.exports = mongoose.model('User', UserSchema);
