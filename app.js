@@ -23,6 +23,7 @@ mongoose
   .then(() => console.log("mongoDB connected successful"))
   .catch(err => console.error(err));
 const conn = mongoose.connection;
+mongoose.Promise = global.Promise;
 
 var indexRouter = require("./routes/index");
 var diariesRouter = require("./routes/diaries");
