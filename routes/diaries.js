@@ -8,34 +8,26 @@ router.get("/", (req, res) => {
   if (uid && !emotion) {
     Diary.find({"uid": uid})
       .then(diaries => {
-        if (!diaries.length)
-          return res.status(404).send({ "success": false, "err": "Diary not found" });
+        if (!diaries.n){
         res.json({"success": true, "result": diaries });
+        }
       })
-      .catch(err => res.status(500).send({"success": false, "err": err}));
+      .catch(err => res.json({"success": false, "err": err}));
   } else if (!uid && emotion) {
     Diary.find({"emotion": emotion})
       .then(diaries => {
-        if (!diaries.length)
-          return res.status(404).send({ "success": false, err: "Diary not found" });
-        res.json({ "success": true, "result": diaries });
-      })
-      .catch(err => res.status(500).send({"success": false, "err": err}));
-  } else if (uid && emotion) {
-    Diary.find({ "uid": uid })
-      .then(diaries => {
         if (!diaries.n)
-          return res.status(404).send({ "success": false, err: "Diary not found" });
-        diaries
-          .find({"emotion":emotion})
-          .then(diariess => {
-            if (!diariess.n)
-              return res.status(404).send({ "success": false,  "err": "Diary not found" });
-            res.json({ "success": true, "result": diariess });
-          })
-          .catch(err => res.status(500).send({ "success": false, "err": err }));
+          res.json({ "success": true, "result": diaries });
       })
-      .catch(err => res.status(500).send({ "success": false, "err": err }));
+      .catch(err => res.json({"success": false, "err": err}));
+  } else if (uid && emotion) {
+    Diary.find({ "uid": uid, "emotion": emotion })
+      .then(diaries => {
+        if (diaries.n) {
+          res.json({ "success": true, "result": diariess });     
+        }
+      })
+      .catch(err => res.json({ "success": false, "err": err }));
   } else {
     return res.status(404).send({ "success": false, err: "Diary not found" });
   }
