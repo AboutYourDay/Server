@@ -3,8 +3,8 @@ const Diary = require("../models/Diary");
 
 //Find
 router.get("/", (req, res) => {
-  var uid = req.params("uid");
-  var emotion = req.param("emotion");
+  var uid = req.query.uid;
+  var emotion = req.query.emotion;
   if (uid && !emotion) {
     Diary.find({"uid": uid})
       .then(diaries => {
