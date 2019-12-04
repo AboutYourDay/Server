@@ -1,69 +1,16 @@
 const router = require("express").Router();
 const Diary = require("../models/Diary");
+const User = require("../models/User");
 
 // get all diaries by id
 router.get("/", async (req, res) => {
   const uid = req.query.uid;
   try {
     const result = await Diary.find({uid});
-    res.send({success: true, result});
+    res.json({success: true, result});
   } catch(e) {
-    res.send({success: false, error: e});
+    res.json({success: false, error: e});
   }
-  // if (uid && !emotion) {
-  //   Diary.find({"uid": uid})
-  //     .then(diaries => {
-  //       if (!diaries.n){
-  //       res.json({"success": true, "result": diaries });
-  //       }
-  //     })
-  //     .catch(err => res.json({"success": false, "err": err}));
-  // } else if (!uid && emotion) {
-  //   Diary.find({"emotion": emotion})
-  //     .then(diaries => {
-  //       if (!diaries.n)
-  //         res.json({ "success": true, "result": diaries });
-  //     })
-  //     .catch(err => res.json({"success": false, "err": err}));
-  // } else if (uid && emotion) {
-  //   Diary.find({ "uid": uid, "emotion": emotion })
-  //     .then(diaries => {
-  //       if (diaries.n) {
-  //         res.json({ "success": true, "result": diariess });     
-  //       }
-  //     })
-  //     .catch(err => res.json({ "success": false, "err": err }));
-  // } else {
-  //   res.status(404).send({ "success": false, err: "Diary not found" });
-  // }
-});
-
-// get diary by did
-router.get("/:did/:uid", async (req, res) => {
-  try {
-    const result = await Diary.findOne({ "_id": req.params.did });
-    if (!result) {
-      res.send({ success: false, message: "Diary not found" });
-      return;
-    }
-    if (result.uid !== req.params.uid) {
-      res.send({ success: false, error: "No permission" });
-      return;
-    }
-    res.send({ success: true, result });
-  } catch(e) {
-    res.status(500).send({success: false, error: e.message});
-  }
-  // Diary.findOne({ "_id": req.params.id })
-  //   .then(diary => {
-  //     if (!diary) {
-  //       res.status(404).send({ "success": false, err: "Diary not found" });
-  //     }
-  //     else{
-  //       res.json({ success: true, result: diary });
-  //     }
-  //   })
-  //   .catch(err => res.status(500).send({ "success": false, "err": err }));
 });
 
 // Create Diary document
@@ -79,9 +26,9 @@ router.post("/", async (req, res) => {
       editedAt: time,
     });
     await result.save();
-    res.send({ success: true });
+    res.json({ success: true });
   } catch(e) {
-    res.status(500).send({ success: false, error: e});
+    res.status(500).json({ success: false, error: e});
   }
 });
 
@@ -95,34 +42,34 @@ router.put("/:did", async (req, res) => {
         editedAt: new Date().getTime()
       });
     if (!result) {
-      res.send({ success: false, message: 'Diary not found' });
+      res.json({ success: false, message: 'Diary not found' });
       return;
     }
-    res.send({success: true});
+    res.json({success: true});
   } catch(e) {
-    res.send({success: false, error: e});
+    res.json({success: false, error: e});
   }
-  // Diary.update({ _id: req.params.id }, { $set: req.body }, diary => {
-  //   if (diary.n) res.json({ "success": true });
-  // }).catch(err => res.json({ "success": false, "message": err }));
 });
 
 // Delete Diary by did
-  // TODO
+
 router.delete("/:did", async (req, res) => {
   try {
     const result = await Diary.findOneAndDelete({_id: req.params.did});
     if (!result) {
-      res.send({success: false, message: "Diary not found"});
+      res.json({success: false, message: "Diary not found"});
       return;
     }
-    res.send({success: true});
+    // TODO
+    // user의 dids 에서 제거
+    // test 필요!
+    const userData = await User.findOne();
+    const updatedDids = userData.dids.filter((d) => d !== req.params.did);
+    await User.update({uid: userData.uid}, {dids: updatedDids});
+    res.json({success: true});
   } catch(e) {
-    res.send({success: false, error: e.message});
+    res.json({success: false, error: e.message});
   }
-//  Diary.remove({ _id: req.params.id }, () => {
-//    res.json({ "success": true });
-//  }).catch(err => res.json({ "success": false, "message": err }));
 });
 
 module.exports = router;
