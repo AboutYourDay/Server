@@ -39,9 +39,9 @@ router.get("/", async (req, res) => {
 });
 
 // get diary by did
-router.get("/:_id/:uid", async (req, res) => {
+router.get("/:did/:uid", async (req, res) => {
   try {
-    const result = await Diary.findOne({ "_id": req.params._id });
+    const result = await Diary.findOne({ "_id": req.params.did });
     if (!result) {
       res.send({ success: false, message: "Diary not found" });
       return;
@@ -86,9 +86,9 @@ router.post("/", async (req, res) => {
 });
 
 // Update Dirary by did
-router.put("/:_id", async (req, res) => {
+router.put("/:did", async (req, res) => {
   try {
-    const result = await Diary.findOneAndUpdate({ _id: req.params._id }, {
+    const result = await Diary.findOneAndUpdate({ _id: req.params.did }, {
         imageURL: req.body.imageURL,
         textAttr: req.body.textAttr,
         emotion: req.body.emotion,
@@ -109,9 +109,9 @@ router.put("/:_id", async (req, res) => {
 
 // Delete Diary by did
   // TODO
-router.delete("/:_id", async (req, res) => {
+router.delete("/:did", async (req, res) => {
   try {
-    const result = await Diary.findOneAndDelete({_id: req.params._id});
+    const result = await Diary.findOneAndDelete({_id: req.params.did});
     if (!result) {
       res.send({success: false, message: "Diary not found"});
       return;
