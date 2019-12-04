@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
-const autoInc = require("mongoose-auto-increment");
-autoInc.initialize(mongoose.connection);
+// const autoInc = require("mongoose-auto-increment");
+// autoInc.initialize(mongoose.connection);
 
 const UserSchema = new mongoose.Schema({
-  _id: { type: String, required: true },
-  did: { type: [String], required: true },
+  uid: { type: String, required: true },
+  dids: { type: [String], required: true }
 });
 
 UserSchema.statics.create = function(payload) {
