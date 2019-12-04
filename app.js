@@ -5,23 +5,23 @@ var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 
 const mongoose = require("mongoose");
-// mongoose.Promise = global.Promise
-// mongoose
-//     .connect("mongodb://localhost:27017/local", { useNewUrlParser: true, useUnifiedTopology: true })
-//     .then(() => console.log("connected successful"))
-//     .catch(err => console.error(err));
-
+mongoose.Promise = global.Promise
 mongoose
-  .connect(
-    "mongodb+srv://Joylish:1234@abouturday-dmood.mongodb.net/AboutURDay?retryWrites=true&w=majority",
-    {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      useFindAndModify: false
-    }
-  )
-  .then(() => console.log("mongoDB connected successful"))
-  .catch(err => console.error(err));
+    .connect("mongodb://localhost:27017/local", { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log("connected successful"))
+    .catch(err => console.error(err));
+
+// mongoose
+//   .connect(
+//     "mongodb+srv://Joylish:1234@abouturday-dmood.mongodb.net/AboutURDay?retryWrites=true&w=majority",
+//     {
+//       useNewUrlParser: true,
+//       useUnifiedTopology: true,
+//       useFindAndModify: false
+//     }
+//   )
+//   .then(() => console.log("mongoDB connected successful"))
+//   .catch(err => console.error(err));
 const conn = mongoose.connection;
 mongoose.Promise = global.Promise;
 
@@ -41,7 +41,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
-app.use("/diaries", diariesRouter);
+app.use("/diary", diariesRouter);
 app.use("/users", usersRouter);
 
 // catch 404 and forward to error handler

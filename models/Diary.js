@@ -4,11 +4,20 @@ autoInc.initialize(mongoose.connection);
 
 const DiarySchema = new mongoose.Schema({
   uid: { type: String, required: true },
-  url: { type: String, default: "" },
-  createdAt: { type: Number, default: "" },
-  editedAt: { type: Number, default: "" },
-  text: { type: String, default: "" },
-  emotion: { type: String, default: "" },
+  imageURL: { type: String, required: true },
+  textAttr: { type: {
+    text: String,
+    alignHorizontal: String,
+    alignVertical: String,
+    fontSize: Number,
+    fontWeight: Number,
+    italic: Boolean,
+    underline: Boolean,
+    color: String
+  }, required: true },
+  emotion: { type: String, required: true },
+  createdAt: { type: Number, required: true },
+  editedAt: { type: Number, required: true },
 });
 
 DiarySchema.statics.create = function(payload){

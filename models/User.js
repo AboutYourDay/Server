@@ -3,9 +3,8 @@ const autoInc = require("mongoose-auto-increment");
 autoInc.initialize(mongoose.connection);
 
 const UserSchema = new mongoose.Schema({
-    did: [String],
-    createdAt: {type: Number, required: true},
-    lastLogin: Number,
+  _id: { type: String, required: true },
+  did: { type: [String], required: true },
 });
 
 UserSchema.statics.create = function(payload) {
