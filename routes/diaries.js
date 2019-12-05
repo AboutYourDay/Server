@@ -9,13 +9,18 @@ router.get("/", async (req, res) => {
   const page = req.query.page? parseInt(req.query.page): 1;
   const count = req.query.count? parseInt(req.query.count) : 1;
   const time = req.query.time? parseInt(req.query.time): null;
-  const days = rea.query.days? parseInt(req.query.days): null;
+  const days = req.query.days? parseInt(req.query.days): null;
   let result = null;
   try {
+        //해당 uid의 user가 diary를 하나도 가지고 있지 않을 때
+        const numOfProducts = await Diary.count({ "uid": uid });
+        if(!numOfProducts){
+          return res.json({"success": false, "error": "User doesn't have any diaries"});
+        }
+
         // query로 받은 time을 시작점으로 기간 days에 대한 모든 다이어리를 페이지마다 넘겨준다
         // /diary?page=1&time=1575431613&days=10&count=10
         if (time && days) {
-          console.log(time + days * 24 * 60 * 60 * 1000);
           result = await Diary.find({
             "uid": uid,
             "createdAt": { $gte: time, $lte: time + days * 24 * 60 * 60 * 1000 }
@@ -25,6 +30,7 @@ router.get("/", async (req, res) => {
           .skip(count * page - count)
           .limit(count);
         }
+
         // query parameter로 time과 days가 없을 때 모든 다이어리를 페이지마다 넘겨준다
         // /diary?page=1&count=10
         else {
@@ -36,7 +42,7 @@ router.get("/", async (req, res) => {
           .skip(count * page - count)
           .limit(count);
         }
-        const numOfProducts = await Diary.count({ "uid": uid });
+        
         res.json({
           "success": true,
           "currentPage": page,
@@ -53,7 +59,7 @@ router.get("/:did", async (req, res) => {
   // /diary/3?uid=1
   const uid = req.query.uid;
   try {
-    // users collecion에 해당 uid가 있는지 확인한다
+    // users collection에 해당 uid가 있는지 확인한다
     const isThereUser = await User.findOne({"uid": uid});
     if (!isThereUser) {
       return res.json({ "success": false, "error": "User not found" });
@@ -85,6 +91,8 @@ router.post("/", async (req, res) => {
       "editedAt": 0
     });
     const result = await data.save();
+    
+    // User collecion에도 반영해준다.
     await User.update({ "uid": req.body.uid }, { $push: { "dids": result._id } });
     res.json({ "success": true, result });
   } catch (e) {
@@ -116,13 +124,18 @@ router.put("/:did", async (req, res) => {
 // Delete Diary by did
 router.delete("/:did", async (req, res) => {
   try {
-    const result = await Diary.findOneAndDelete({ "_id": req.params.did });
-    if (!result) {
-      return res.json({ "success": false, "error": "Diary not found" });
-    }
-    await User.update({ "uid": result.uid }, { $pull: { "dids": req.params.did } });
-    res.json({ "success": true });
-  } catch (e) {
+        const result = await Diary.findOneAndDelete({ _id: req.params.did });
+        if (!result) {
+          return res.json({ success: false, error: "Diary not found" });
+        }
+        
+        // User collecion에도 반영해준다.
+        await User.update(
+          { uid: result.uid },
+          { $pull: { dids: req.params.did } }
+        );
+        res.json({ success: true });
+      } catch (e) {
     res.json({ "success": false, "error": e.message });
   }
 });
