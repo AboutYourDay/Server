@@ -12,6 +12,19 @@ router.get("/", async (req, res) => {
     res.json({success: false, error: e});
   }
 });
+router.get("/:id", async (req, res) => {
+  const uid = req.query.uid;
+  try {
+    const result = await Diary.find({uid, _id: req.params.id});
+    if (result.length === 0) {
+      res.json({ success: false, message: 'Diary not found' });
+    } else {
+      res.json({ success: true, result: result[0] });
+    }
+  } catch(e) {
+    res.json({success: false, error: e});
+  }
+})
 
 // Create Diary document
 router.post("/", async (req, res) => {
