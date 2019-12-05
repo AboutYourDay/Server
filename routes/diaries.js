@@ -5,10 +5,21 @@ const User = require("../models/User");
 // get all diaries
 router.get("/", async (req, res) => {
   const uid = req.query.uid;
+  const page = req.query.page || 1;
+  const restPerPage = 9;
 
   try {
-    const result = await Diary.find({ uid });
-    res.json({ success: true, result });
+    const result = await Diary.find({ "uid": uid }).skip(restPerPage*page- restPerPage).limit(restPerPage);
+    const numOfProducts = await Diary.count({ uid: uid });
+  
+    res.json({ 
+      success: true,
+      currentPage: page,
+      pages: Math.ceil(numOfProducts/restPerPage),
+      foundDiaries: result,
+      numOfDiaries: numOfProducts 
+    });
+
   } catch (e) {
     res.json({ success: false, error: e.message });
   }
@@ -17,7 +28,8 @@ router.get("/", async (req, res) => {
 // Create Diary document
 router.post("/", async (req, res) => {
   try {
-    if(User.find({uid: req.body.uid})){
+    const isThereUser = await User.findOne({uid: req.body.uid});
+    if(isThereUser){
       const time = new Date().getTime();
       const data = await Diary.create({
         uid: req.body.uid,
