@@ -9,39 +9,42 @@ router.get("/", async (req, res) => {
   const restPerPage = 9;
 
   try {
-    const result = await Diary.find({ "uid": uid }).skip(restPerPage*page- restPerPage).limit(restPerPage);
+    const result = await Diary.find({ uid: uid })
+      .skip(restPerPage * page - restPerPage)
+      .limit(restPerPage);
     const numOfProducts = await Diary.count({ uid: uid });
-    res.json({ 
+    res.json({
       success: true,
       currentPage: page,
-      pages: Math.ceil(numOfProducts/restPerPage),
+      pages: Math.ceil(numOfProducts / restPerPage),
       foundDiaries: result,
-      numOfDiaries: numOfProducts 
+      numOfDiaries: numOfProducts
     });
-
   } catch (e) {
     res.json({ success: false, error: e.message });
   }
 });
+
 router.get("/:id", async (req, res) => {
-  const uid = req.query.uid;
   try {
-    const result = await Diary.find({uid, _id: req.params.id});
-    if (result.length === 0) {
-      res.json({ success: false, message: 'Diary not found' });
-    } else {
-      res.json({ success: true, result: result[0] });
+    const result = await Diary.findOne({_id: req.params.id });
+    if (!result) {
+      return res.json({
+          success: false,
+          message: "Diary not found"
+      });
     }
-  } catch(e) {
-    res.json({success: false, error: e});
+    res.json({ success: true, result: result });
+  } catch (e) {
+    res.json({ success: false, error: e.message });
   }
-})
+});
 
 // Create Diary document
 router.post("/", async (req, res) => {
   try {
-    const isThereUser = await User.findOne({uid: req.body.uid});
-    if(!isThereUser){
+    const isThereUser = await User.findOne({ uid: req.body.uid });
+    if (!isThereUser) {
       return res.json({ success: false, error: "User not found" });
     }
     const time = new Date().getTime();
@@ -83,7 +86,6 @@ router.put("/:did", async (req, res) => {
 });
 
 // Delete Diary by did
-
 router.delete("/:did", async (req, res) => {
   try {
     const result = await Diary.findOneAndDelete({ _id: req.params.did });
@@ -92,7 +94,6 @@ router.delete("/:did", async (req, res) => {
     }
     await User.update({ uid: result.uid }, { $pull: { dids: req.params.did } });
     res.json({ success: true });
-    
   } catch (e) {
     res.json({ success: false, error: e.message });
   }
