@@ -4,7 +4,7 @@ autoInc.initialize(mongoose.connection);
 
 const DiarySchema = new mongoose.Schema({
   uid: { type: String, required: true },
-  imageURL: { type: String, required: true },
+  imageURL: { type: String, default: '' },
   textAttr: { type: {
     text: String,
     alignHorizontal: String,

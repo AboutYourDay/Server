@@ -16,8 +16,9 @@ router.get("/", async (req, res) => {
 // Create Diary document
 router.post("/", async (req, res) => {
   const time = new Date().getTime();
+  console.log(req.body);
   try {
-    const result = await Diary.create({
+    const data = await Diary.create({
       uid: req.body.uid,
       imageURL: req.body.imageURL,
       textAttr: req.body.textAttr,
@@ -25,9 +26,10 @@ router.post("/", async (req, res) => {
       createdAt: time,
       editedAt: time,
     });
-    await result.save();
-    res.json({ success: true });
+    const result = await data.save();
+    res.json({ success: true, result });
   } catch(e) {
+    console.log(e);
     res.status(500).json({ success: false, error: e});
   }
 });
