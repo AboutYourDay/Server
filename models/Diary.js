@@ -3,7 +3,6 @@ const autoInc = require("mongoose-auto-increment");
 autoInc.initialize(mongoose.connection);
 
 const DiarySchema = new mongoose.Schema({
-  _id: { type: String, required: true },
   uid: { type: String, required: true },
   imageURL: { type: String, default: '' },
   textAttr: { type: {

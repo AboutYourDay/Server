@@ -5,6 +5,7 @@ const User = require("../models/User");
 // get all diaries
 router.get("/", async (req, res) => {
   const uid = req.query.uid;
+
   try {
     const result = await Diary.find({ uid });
     res.json({ success: true, result });
