@@ -9,7 +9,7 @@ const mongoose = require("mongoose");
 mongoose.Promise = global.Promise
 mongoose
     .connect("mongodb://localhost:27017/local", { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => console.log("connected successful"))
+    .then(() => console.log("mongoDB connected successful"))
     .catch(err => console.error(err));
 
 // mongoose
