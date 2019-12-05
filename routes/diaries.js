@@ -11,7 +11,6 @@ router.get("/", async (req, res) => {
   try {
     const result = await Diary.find({ "uid": uid }).skip(restPerPage*page- restPerPage).limit(restPerPage);
     const numOfProducts = await Diary.count({ uid: uid });
-  
     res.json({ 
       success: true,
       currentPage: page,
@@ -29,23 +28,21 @@ router.get("/", async (req, res) => {
 router.post("/", async (req, res) => {
   try {
     const isThereUser = await User.findOne({uid: req.body.uid});
-    if(isThereUser){
-      const time = new Date().getTime();
-      const data = await Diary.create({
-        uid: req.body.uid,
-        imageURL: req.body.imageURL,
-        textAttr: req.body.textAttr,
-        emotion: req.body.emotion,
-        createdAt: time,
-        editedAt: 0
-      });
-      const result = await data.save();
-      await User.update({ uid: req.body.uid }, { $push: { dids: result._id } });
-      res.json({ success: true, result });
+    if(!isThereUser){
+      return res.json({ success: false, error: "User not found" });
     }
-    else{
-      res.json({success:false, error: "User not found"})
-    }
+    const time = new Date().getTime();
+    const data = await Diary.create({
+      uid: req.body.uid,
+      imageURL: req.body.imageURL,
+      textAttr: req.body.textAttr,
+      emotion: req.body.emotion,
+      createdAt: time,
+      editedAt: 0
+    });
+    const result = await data.save();
+    await User.update({ uid: req.body.uid }, { $push: { dids: result._id } });
+    res.json({ success: true, result });
   } catch (e) {
     res.status(500).json({ success: false, error: e.message });
   }
@@ -78,12 +75,11 @@ router.delete("/:did", async (req, res) => {
   try {
     const result = await Diary.findOneAndDelete({ _id: req.params.did });
     if (!result) {
-      res.json({ success: false, message: "Diary not found" });
+      return res.json({ success: false, message: "Diary not found" });
     }
-    else{
-      await User.update({ uid: result.uid }, { $pull: { dids: req.params.did } });
-      res.json({ success: true });
-    }
+    await User.update({ uid: result.uid }, { $pull: { dids: req.params.did } });
+    res.json({ success: true });
+    
   } catch (e) {
     res.json({ success: false, error: e.message });
   }

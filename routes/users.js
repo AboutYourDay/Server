@@ -29,7 +29,6 @@ router.post('/', async (req, res) => {
 router.put('/:uid', async (req, res) => {
   try {
     const result = await User.useFindAndModify({ uid: req.params.uid }, { dids: req.body.dids});
-    console.log(result)
     if(!result) {
       return res.json({success:false, message: 'User not found'});
     }
@@ -47,10 +46,10 @@ router.delete('/:uid', async (req, res) => {
     if(!result) {
       return res.json({success: false, message: 'User not found'});
     }
+    res.json({ success: true });
   } catch(e) {
     res.json({success: false, error: e.message});
   }
 });
-
 
 module.exports = router;
