@@ -6,7 +6,7 @@ router.get('/:uid', async (req, res) => {
   try {
     const result = await User.findOne({uid: req.params.uid});
     if(!result) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res.status(404).json({ success: false, error: 'User not found' });
     }
     res.json({success: true, result});
   } catch(e) {
@@ -30,7 +30,7 @@ router.put('/:uid', async (req, res) => {
   try {
     const result = await User.useFindAndModify({ uid: req.params.uid }, { dids: req.body.dids});
     if(!result) {
-      return res.json({success:false, message: 'User not found'});
+      return res.json({success:false, error: 'User not found'});
     }
     res.json({ success: true });
   } catch(e) {
@@ -44,7 +44,7 @@ router.delete('/:uid', async (req, res) => {
   try {
     const result = await User.findOneAndDelete({uid: req.params.uid});
     if(!result) {
-      return res.json({success: false, message: 'User not found'});
+      return res.json({success: false, error: 'User not found'});
     }
     res.json({ success: true });
   } catch(e) {
