@@ -7,7 +7,7 @@ const DiarySchema = new mongoose.Schema({
   imageAttr: {
     width: Number,
     height: Number,
-    imageURL: { type: String, default: "" }
+    imageURL: { type: String, default: '' }
   },
   textAttr: {
     type: {

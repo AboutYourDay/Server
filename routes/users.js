@@ -21,7 +21,9 @@ router.post('/:uid', async (req, res) => {
     if(isThereUser){
       return res.json({ success: false, error: "Cannot create User object by uid"});
     }
-    const result = await User.create(req.body);
+    const result = await User.create({
+      uid: req.params.uid
+    });
     await result.save();
     res.json({success: true});
   } catch(e) {
