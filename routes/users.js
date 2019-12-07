@@ -32,7 +32,14 @@ router.post('/:uid', async (req, res) => {
 // Update by uid
 router.put('/:uid', async (req, res) => {
   try {
-    const result = await User.useFindAndModify({ uid: req.params.uid }, { dids: req.body.dids});
+    // params uid
+    // query imageURL
+    const imageURL = req.query.imageURL;
+    // const result = await User.useFindAndModify({ uid: req.params.uid }, { dids: req.body.dids});
+    const result = await await User.update(
+      { uid: req.params.uid },
+      { $push: { imageURLs: imageURL} }
+    );
     if(!result) {
       return res.json({success:false, error: 'User not found'});
     }

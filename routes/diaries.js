@@ -93,14 +93,15 @@ router.post("/", async (req, res) => {
     const result = await data.save();
 
     // User collecion에도 반영해준다.
-    await User.update({ uid: req.body.uid }, { $push: { dids: result._id } });
+    console.log(result.imageAttr.imageURL);
+    await User.update({ uid: req.body.uid }, { $push: { imageURLs: result.imageAttr.imageURL, dids: result._id } });
     res.json({ success: true, result });
   } catch (e) {
     res.status(500).json({ success: false, error: e.message });
   }
 });
 
-// Update Dirary by did
+// Update Diary by did
 router.put("/:did", async (req, res) => {
   try {
     const result = await Diary.findOneAndUpdate(
