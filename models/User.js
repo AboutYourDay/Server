@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
   uid: { type: String },
-  dids: { type: [String], default: '' },
-  imageURLs: { type: [String], default: ''}
+  dids: { type: [String], default: [] },
+  imageURLs: { type: [String], default: []}
 });
 
 mongoose.set("useCreateIndex", true);
