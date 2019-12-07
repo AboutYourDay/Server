@@ -15,8 +15,12 @@ router.get('/:uid', async (req, res) => {
 });
 
 // Create User document
-router.post('/', async (req, res) => {
+router.post('/:uid', async (req, res) => {
   try {
+    const isThereUser = await User.findOne({ uid: req.params.uid });
+    if(isThereUser){
+      return res.json({ success: false, error: "Cannot create User object by uid"});
+    }
     const result = await User.create(req.body);
     await result.save();
     res.json({success: true});

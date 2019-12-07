@@ -16,7 +16,7 @@ router.get("/", async (req, res) => {
     if(!uid){
       return res.json({success:false, error: "Please write uid by query parameter"});
     }
-    const countByUid = await Diary.count({ uid: uid });
+    const countByUid = await Diary.countDocuments({ uid: uid });
     if (!countByUid) {
       return res.json({
         success: false,
