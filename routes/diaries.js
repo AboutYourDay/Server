@@ -13,6 +13,9 @@ router.get("/", async (req, res) => {
   let result = null;
   try {
     //해당 uid의 user가 diary를 하나도 가지고 있지 않을 때
+    if(!uid){
+      return res.json({success:false, error: "Please write uid by query parameter"});
+    }
     const countByUid = await Diary.count({ uid: uid });
     if (!countByUid) {
       return res.json({
@@ -23,7 +26,6 @@ router.get("/", async (req, res) => {
 
     if (uid && !count && !page && !time && !days) {
       result = await Diary.find({ uid: uid });
-      return res.json({ success: true, result });
     }
     // query로 받은 time을 시작점으로 기간 days에 대한 모든 다이어리를 페이지마다 넘겨준다
     // /diary?page=1&time=1575431613&days=10&count=10
