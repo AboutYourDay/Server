@@ -23,7 +23,6 @@ router.get("/", async (req, res) => {
         error: "User doesn't have any diaries"
       });
     }
-
     if (uid && !count && !page && !time && !days) {
       result = await Diary.find({ uid: uid });
     }
@@ -39,7 +38,6 @@ router.get("/", async (req, res) => {
         .skip(count * page - count)
         .limit(count);
     }
-
     // query parameter로 time과 days가 없을 때 모든 다이어리를 페이지마다 넘겨준다
     // /diary?page=1&count=10
     else if (uid && page && count && !time && !days) {
@@ -51,7 +49,6 @@ router.get("/", async (req, res) => {
         .skip(count * page - count)
         .limit(count);
     }
-
     res.json({ success: true, result });
   } catch (e) {
     res.json({ success: false, error: e.message });
@@ -87,7 +84,7 @@ router.post("/", async (req, res) => {
     const time = new Date().getTime();
     const data = await Diary.create({
       uid: req.body.uid,
-      imageURL: req.body.imageURL,
+      imageAttr: req.body.imageAttr,
       textAttr: req.body.textAttr,
       emotion: req.body.emotion,
       createdAt: time,
@@ -109,7 +106,7 @@ router.put("/:did", async (req, res) => {
     const result = await Diary.findOneAndUpdate(
       { _id: req.params.did },
       {
-        imageURL: req.body.imageURL,
+        imageAttr: req.body.imageAttr,
         textAttr: req.body.textAttr,
         emotion: req.body.emotion,
         editedAt: new Date().getTime()
