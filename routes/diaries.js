@@ -113,12 +113,16 @@ router.get("/:did", async (req, res) => {
 // Create Diary document
 router.post("/", async (req, res) => {
   try {
-    const isThereUser = await User.findOne({ uid: req.body.uid });
-    if (!isThereUser) {
+    const userData = await User.findOne({ uid: req.body.uid });
+    if (!userData) {
       return res.json({ success: false, error: "User not found" });
     }
+    const isDiaryDuplicate = await Diary.findOne({ uid: req.body.uid, createdAt: req.body.createdAt });
+    if(isDiaryDuplicate){
+      return res.json({ success: false, error: "Maybe duplicate diary of user by comparing uid and createdAt" });
+    }
     const time = new Date().getTime();
-    const data = await Diary.create({
+    const diaryData = await Diary.create({
       uid: req.body.uid,
       imageAttr: req.body.imageAttr,
       textAttr: req.body.textAttr,
@@ -126,12 +130,21 @@ router.post("/", async (req, res) => {
       createdAt: time,
       editedAt: 0
     });
-    const result = await data.save();
+    const result = await diaryData.save();
+    res.json({ success: true, result });
+
+    const historyData = await History.create({
+      uid: req.body.uid,
+      did: result._id,
+      type: "작성",
+      writtenAt: time
+    });
+    await historyData.save();
 
     // User collecion에도 반영해준다.
     await User.update({ uid: req.body.uid }, { $push: { imageURLs: result.imageAttr.imageURL, dids: result._id } });
     notify(req.body.email, "작성완료", result);
-    res.json({ success: true, result });
+    return;
     
     // for(let cnt=5; cnt>0; cnt--){
     //   let mailresult = -1;
@@ -165,9 +178,25 @@ router.put("/:did", async (req, res) => {
     if (!result) {
       return res.json({ success: false, error: "Diary not found" });
     }
-    notify(req.body.email, "수정완료", result);
+    const isDiaryDuplicate = await Diary.findOne({ uid: req.body.uid, editedAt: req.body.editedAt });
+    if (isDiaryDuplicate) {
+      return res.json({
+        success: false,
+        error: "Maybe duplicate diary of user by comparing uid and editedAt"
+      });
+    }
     res.json({ success: true });
-    
+
+    notify(req.body.email, "수정완료", result);
+    const time = new Date().getTime();
+    const historyData = await History.create({
+      uid: req.body.uid,
+      did: result._id,
+      type: "수정",
+      writtenAt: time
+    });
+    await historyData.save();
+    return;
     // for(let cnt=5; cnt>0; cnt--){
     //   let mailresult = -1;
     //   if (mailresult == 1) {
