@@ -29,6 +29,7 @@ mongoose.Promise = global.Promise;
 var indexRouter = require("./routes/index");
 var diariesRouter = require("./routes/diaries");
 var usersRouter = require("./routes/users");
+var historyRouter = require("./routes/history");
 var app = express();
 
 app.use(cors());
@@ -46,6 +47,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/", indexRouter);
 app.use("/diary", diariesRouter);
 app.use("/users", usersRouter);
+app.use("/history", historyRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

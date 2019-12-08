@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const Diary = require("../models/Diary");
 const User = require("../models/User");
+const History = require("../models/Diary");
 const nodemailer = require("nodemailer");
 
 async function notify(receiver, type, diary){
@@ -62,6 +63,17 @@ router.get("/", async (req, res) => {
     if (uid && !count && !page && !time && !days) {
       result = await Diary.find({ uid: uid });
     }
+    // query parameter로 time과 days가 없을 때 모든 다이어리를 페이지마다 넘겨준다
+    // /diary?page=1&count=10
+    else if (uid && page && count && !time && !days) {
+      result = await Diary.find({
+        uid: uid
+      })
+        // 다이어리가 만들어진 날짜 기준으로 내림차순
+        .sort({ createdAt: -1 })
+        .skip(count * page - count)
+        .limit(count);
+    }
     // query로 받은 time을 시작점으로 기간 days에 대한 모든 다이어리를 페이지마다 넘겨준다
     // /diary?page=1&time=1575431613&days=10&count=10
     else if (uid && page && count && time && days) {
@@ -74,17 +86,7 @@ router.get("/", async (req, res) => {
         .skip(count * page - count)
         .limit(count);
     }
-    // query parameter로 time과 days가 없을 때 모든 다이어리를 페이지마다 넘겨준다
-    // /diary?page=1&count=10
-    else if (uid && page && count && !time && !days) {
-      result = await Diary.find({
-        uid: uid
-      })
-        // 다이어리가 만들어진 날짜 기준으로 내림차순
-        .sort({ createdAt: -1 })
-        .skip(count * page - count)
-        .limit(count);
-    }
+    
     res.json({ success: true, result });
   } catch (e) {
     res.json({ success: false, error: e.message });
