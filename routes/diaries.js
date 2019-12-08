@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const Diary = require("../models/Diary");
 const User = require("../models/User");
+const History = require("../models/Diary");
 const nodemailer = require("nodemailer");
 
 async function notify(receiver, type, diary){
@@ -62,6 +63,17 @@ router.get("/", async (req, res) => {
     if (uid && !count && !page && !time && !days) {
       result = await Diary.find({ uid: uid });
     }
+    // query parameter로 time과 days가 없을 때 모든 다이어리를 페이지마다 넘겨준다
+    // /diary?page=1&count=10
+    else if (uid && page && count && !time && !days) {
+      result = await Diary.find({
+        uid: uid
+      })
+        // 다이어리가 만들어진 날짜 기준으로 내림차순
+        .sort({ createdAt: -1 })
+        .skip(count * page - count)
+        .limit(count);
+    }
     // query로 받은 time을 시작점으로 기간 days에 대한 모든 다이어리를 페이지마다 넘겨준다
     // /diary?page=1&time=1575431613&days=10&count=10
     else if (uid && page && count && time && days) {
@@ -74,17 +86,7 @@ router.get("/", async (req, res) => {
         .skip(count * page - count)
         .limit(count);
     }
-    // query parameter로 time과 days가 없을 때 모든 다이어리를 페이지마다 넘겨준다
-    // /diary?page=1&count=10
-    else if (uid && page && count && !time && !days) {
-      result = await Diary.find({
-        uid: uid
-      })
-        // 다이어리가 만들어진 날짜 기준으로 내림차순
-        .sort({ createdAt: -1 })
-        .skip(count * page - count)
-        .limit(count);
-    }
+    
     res.json({ success: true, result });
   } catch (e) {
     res.json({ success: false, error: e.message });
@@ -113,12 +115,16 @@ router.get("/:did", async (req, res) => {
 // Create Diary document
 router.post("/", async (req, res) => {
   try {
-    const isThereUser = await User.findOne({ uid: req.body.uid });
-    if (!isThereUser) {
+    const userData = await User.findOne({ uid: req.body.uid });
+    if (!userData) {
       return res.json({ success: false, error: "User not found" });
     }
+    const isDiaryDuplicate = await Diary.findOne({ uid: req.body.uid, createdAt: req.body.createdAt });
+    if(isDiaryDuplicate){
+      return res.json({ success: false, error: "Maybe duplicate diary of user by comparing uid and createdAt" });
+    }
     const time = new Date().getTime();
-    const data = await Diary.create({
+    const diaryData = await Diary.create({
       uid: req.body.uid,
       imageAttr: req.body.imageAttr,
       textAttr: req.body.textAttr,
@@ -126,12 +132,21 @@ router.post("/", async (req, res) => {
       createdAt: time,
       editedAt: 0
     });
-    const result = await data.save();
+    const result = await diaryData.save();
+    res.json({ success: true, result });
+
+    const historyData = await History.create({
+      uid: req.body.uid,
+      did: result._id,
+      type: "작성",
+      writtenAt: time
+    });
+    await historyData.save();
 
     // User collecion에도 반영해준다.
     await User.update({ uid: req.body.uid }, { $push: { imageURLs: result.imageAttr.imageURL, dids: result._id } });
     notify(req.body.email, "작성완료", result);
-    res.json({ success: true, result });
+    return;
     
     // for(let cnt=5; cnt>0; cnt--){
     //   let mailresult = -1;
@@ -165,9 +180,25 @@ router.put("/:did", async (req, res) => {
     if (!result) {
       return res.json({ success: false, error: "Diary not found" });
     }
-    notify(req.body.email, "수정완료", result);
+    const isDiaryDuplicate = await Diary.findOne({ uid: req.body.uid, editedAt: req.body.editedAt });
+    if (isDiaryDuplicate) {
+      return res.json({
+        success: false,
+        error: "Maybe duplicate diary of user by comparing uid and editedAt"
+      });
+    }
     res.json({ success: true });
-    
+
+    notify(req.body.email, "수정완료", result);
+    const time = new Date().getTime();
+    const historyData = await History.create({
+      uid: req.body.uid,
+      did: result._id,
+      type: "수정",
+      writtenAt: time
+    });
+    await historyData.save();
+    return;
     // for(let cnt=5; cnt>0; cnt--){
     //   let mailresult = -1;
     //   if (mailresult == 1) {
