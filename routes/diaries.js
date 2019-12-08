@@ -1,6 +1,42 @@
 const router = require("express").Router();
 const Diary = require("../models/Diary");
 const User = require("../models/User");
+const nodemailer = require("nodemailer");
+
+async function notify(receiver, type, diary){
+  const mailOptions = {
+    from: "abouturday@gmail.com",
+    to: receiver,
+    subject: "[AboutURDay]" + "다이어리" + type + "되었습니다.",
+    html:
+      "<p style ='font-size:24px'> 다이어리가 성공적으로 "+ type + "되었습니다.</p>" +
+      "<p style ='font-size:24px'> AboutURDay를 이용해주셔서 감사합니다.</p>" +
+      "<p style ='font-size:24px'> 이 날의 기분은 " + diary.emotion + " 이셨습니다:)</p>" +
+      "<img src =" +
+      "'" +
+      diary.imageAttr.imageURL +
+      "'>"
+  };
+
+  const sender = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "abouturday@gmail.com",
+      pass: "zxc123!!"
+    }
+  });
+
+  sender.sendMail(mailOptions, function (err, result) {
+    if (err) {
+      console.log(err);
+      return -1;
+    }
+    else {
+      console.log("Email sent: " + result.response);
+      return 1;
+    }
+  });
+}
 
 // get all diaries
 router.get("/", async (req, res) => {
@@ -93,9 +129,22 @@ router.post("/", async (req, res) => {
     const result = await data.save();
 
     // User collecion에도 반영해준다.
-    console.log(result.imageAttr.imageURL);
     await User.update({ uid: req.body.uid }, { $push: { imageURLs: result.imageAttr.imageURL, dids: result._id } });
+    notify(req.body.email, "작성완료", result);
     res.json({ success: true, result });
+    
+    // for(let cnt=5; cnt>0; cnt--){
+    //   let mailresult = -1;
+    //   if(mailresult == 1) {
+    //     console.log("Success to send mail.");
+    //     break;
+    //   }
+    //   mailresult = await notify(req.body.email, "작성완료", result);
+    //   console.log(mailresult);
+    // }
+    // console.log("Fail to send mail.");
+    // return;
+
   } catch (e) {
     res.status(500).json({ success: false, error: e.message });
   }
@@ -116,7 +165,19 @@ router.put("/:did", async (req, res) => {
     if (!result) {
       return res.json({ success: false, error: "Diary not found" });
     }
+    notify(req.body.email, "수정완료", result);
     res.json({ success: true });
+    
+    // for(let cnt=5; cnt>0; cnt--){
+    //   let mailresult = -1;
+    //   if (mailresult == 1) {
+    //     console.log("Success to send mail.");
+    //     break;
+    //   }
+    //   mailresult = notify(req.body.email, "수정완료", result);
+    // }
+    // console.log("Fail to send mail.");
+    // return;
   } catch (e) {
     res.json({ success: false, error: e.message });
   }
