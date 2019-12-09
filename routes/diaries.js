@@ -129,51 +129,60 @@ router.get("/:did", async (req, res) => {
 // Create Diary document
 router.post("/", async (req, res) => {
   try {
-        const userData = await User.findOne({ uid: req.body.uid });
-        if (!userData) {
-          return res.json({ success: false, error: "User not found" });
-        }
-        const isDiaryDuplicate = await Diary.findOne({
-          uid: req.body.uid,
-          imageAttr: {
-            imageURL: req.body.imageAttr.imageURL
-          }
-        });
-        if (isDiaryDuplicate) {
-          return res.json({
-            success: false,
-            error: "Maybe duplicate diary of user by comparing uid and imgURL"
-          });
-        }
+    const userData = await User.findOne({ uid: req.body.uid });
+    if (!userData) {
+      return res.json({ success: false, error: "User not found" });
+    }
+    const isDiaryDuplicate = await Diary.findOne({
+      uid: req.body.uid,
+      imageAttr: {
+        imageURL: req.body.imageAttr.imageURL
+      }
+    });
+    if (isDiaryDuplicate) {
+      return res.json({
+        success: false,
+        error: "Maybe duplicate diary of user by comparing uid and imgURL"
+      });
+    }
+    const time = new Date().getTime();
+    const diaryData = await Diary.create({
+      uid: req.body.uid,
+      imageAttr: req.body.imageAttr,
+      textAttr: req.body.textAttr,
+      emotion: req.body.emotion,
+      createdAt: time,
+      editedAt: 0
+    });
+    const result = await diaryData.save();
+    res.json({ success: true, result });
+    notify(req.body.email, "작성완료", result);
 
-        const time = new Date().getTime();
-        const diaryData = await Diary.create({
+    const time = new Date().getTime();
+    const diaryData = await Diary.create({
           uid: req.body.uid,
           imageAttr: req.body.imageAttr,
           textAttr: req.body.textAttr,
           emotion: req.body.emotion,
           createdAt: time,
           editedAt: 0
-        });
-        const result = await diaryData.save();
-        console.log(result);
-        new History({
+    });
+    const result = await diaryData.save();
+    console.log(result);
+    new History({
           uid: result.uid,
           did: result._id.toString(),
           writtenAt: time,
           type: "작성"
-        }).save(err => console.log("err is :", err));
+    }).save(err => console.log("err is :", err));
 
-        // User collecion에도 반영해준다.
-        await User.update(
-          { uid: req.body.uid },
-          { $push: { imageURLs: result.imageAttr.imageURL, dids: result._id } }
-        );
+    // User collection에도 반영해준다.
+    await User.update({ uid: req.body.uid }, { $push: { imageURLs: result.imageAttr.imageURL, dids: result._id } });
 
-        notify(req.body.email, "작성", result);
+    notify(req.body.email, "작성", result);
 
-        return res.json({ success: true, result });
-      } catch (e) {
+    return res.json({ success: true, result });
+    } catch (e) {
     console.log(e.message);
     return res.json({ success: false, error: e.message });
   }
