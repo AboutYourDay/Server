@@ -18,7 +18,8 @@ const DiarySchema = new mongoose.Schema({
       fontWeight: Number,
       italic: Boolean,
       underline: Boolean,
-      color: String
+      color: String,
+      blur: Number
     },
     required: true
   },

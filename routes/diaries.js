@@ -1,8 +1,10 @@
-const router = require("express").Router();
+var express = require("express");
+var router = express.Router();
 const Diary = require("../models/Diary");
 const User = require("../models/User");
-const History = require("../models/Diary");
+const History = require("../models/History");
 const nodemailer = require("nodemailer");
+
 
 async function notify(receiver, type, diary){
   const mailOptions = {
@@ -26,17 +28,17 @@ async function notify(receiver, type, diary){
       pass: "zxc123!!"
     }
   });
-
-  sender.sendMail(mailOptions, function (err, result) {
-    if (err) {
-      console.log(err);
-      return -1;
+  try{
+    const result = await sender.sendMail(mailOptions);
+    if(!result){
+        console.log(err);
+        return -1;
     }
-    else {
-      console.log("Email sent: " + result.response);
-      return 1;
-    }
-  });
+    console.log("Email sent: " + result.response);
+    return 1;
+  }catch (e) {
+    res.json({ success: false, error: e.message });
+  }
 }
 
 // get all diaries
@@ -66,26 +68,37 @@ router.get("/", async (req, res) => {
     // query parameter로 time과 days가 없을 때 모든 다이어리를 페이지마다 넘겨준다
     // /diary?page=1&count=10
     else if (uid && page && count && !time && !days) {
-      result = await Diary.find({
-        uid: uid
-      })
-        // 다이어리가 만들어진 날짜 기준으로 내림차순
-        .sort({ createdAt: -1 })
-        .skip(count * page - count)
-        .limit(count);
-    }
-    // query로 받은 time을 시작점으로 기간 days에 대한 모든 다이어리를 페이지마다 넘겨준다
-    // /diary?page=1&time=1575431613&days=10&count=10
-    else if (uid && page && count && time && days) {
-      result = await Diary.find({
-        uid: uid,
-        createdAt: { $gte: time, $lte: time + days * 24 * 60 * 60 * 1000 }
-      })
-        // 다이어리가 만들어진 날짜 기준으로 내림차순
-        .sort({ createdAt: -1 })
-        .skip(count * page - count)
-        .limit(count);
-    }
+           result = await Diary.find({
+             uid: uid
+           })
+             // 다이어리가 만들어진 날짜 기준으로 내림차순
+             .sort({ createdAt: -1 })
+             .skip(count * page - count - 1)
+             .limit(count);
+         }
+         // query로 받은 time을 시작점으로 기간 days에 대한 모든 다이어리를 페이지마다 넘겨준다
+         // /diary?time=1575431613&days=10
+         else if (uid && !page && !count && time && days) {
+           result = await Diary.find({
+             uid: uid,
+             createdAt: { $gte: time, $lte: time + days * 24 * 60 * 60 * 1000 }
+           })
+             // 다이어리가 만들어진 날짜 기준으로 내림차순
+             .sort({ createdAt: -1 });
+         }
+         // query로 받은 time을 시작점으로 기간 days에 대한 모든 다이어리를 페이지마다 넘겨준다
+         // /diary?page=1&time=1575431613&days=10&count=10
+         else if (uid && page && count && time && days) {
+           result = await Diary.find({
+             uid: uid,
+             createdAt: { $gte: time, $lte: time + days * 24 * 60 * 60 * 1000 }
+           })
+             // 다이어리가 만들어진 날짜 기준으로 내림차순
+             .sort({ createdAt: -1 })
+             .skip(count * page - count - 1)
+             .limit(count);
+         }
+    
     
     res.json({ success: true, result });
   } catch (e) {
@@ -112,103 +125,88 @@ router.get("/:did", async (req, res) => {
   }
 });
 
+
 // Create Diary document
 router.post("/", async (req, res) => {
   try {
-    const userData = await User.findOne({ uid: req.body.uid });
-    if (!userData) {
-      return res.json({ success: false, error: "User not found" });
-    }
-    const isDiaryDuplicate = await Diary.findOne({ uid: req.body.uid, createdAt: req.body.createdAt });
-    if(isDiaryDuplicate){
-      return res.json({ success: false, error: "Maybe duplicate diary of user by comparing uid and createdAt" });
-    }
-    const time = new Date().getTime();
-    const diaryData = await Diary.create({
-      uid: req.body.uid,
-      imageAttr: req.body.imageAttr,
-      textAttr: req.body.textAttr,
-      emotion: req.body.emotion,
-      createdAt: time,
-      editedAt: 0
-    });
-    const result = await diaryData.save();
-    res.json({ success: true, result });
+        const userData = await User.findOne({ uid: req.body.uid });
+        if (!userData) {
+          return res.json({ success: false, error: "User not found" });
+        }
+        const isDiaryDuplicate = await Diary.findOne({
+          uid: req.body.uid,
+          imageAttr: {
+            imageURL: req.body.imageAttr.imageURL
+          }
+        });
+        if (isDiaryDuplicate) {
+          return res.json({
+            success: false,
+            error: "Maybe duplicate diary of user by comparing uid and imgURL"
+          });
+        }
 
-    const historyData = await History.create({
-      uid: req.body.uid,
-      did: result._id,
-      type: "작성",
-      writtenAt: time
-    });
-    await historyData.save();
+        const time = new Date().getTime();
+        const diaryData = await Diary.create({
+          uid: req.body.uid,
+          imageAttr: req.body.imageAttr,
+          textAttr: req.body.textAttr,
+          emotion: req.body.emotion,
+          createdAt: time,
+          editedAt: 0
+        });
+        const result = await diaryData.save();
+        console.log(result);
+        new History({
+          uid: result.uid,
+          did: result._id.toString(),
+          writtenAt: time,
+          type: "작성"
+        }).save(err => console.log("err is :", err));
 
-    // User collecion에도 반영해준다.
-    await User.update({ uid: req.body.uid }, { $push: { imageURLs: result.imageAttr.imageURL, dids: result._id } });
-    notify(req.body.email, "작성완료", result);
-    return;
-    
-    // for(let cnt=5; cnt>0; cnt--){
-    //   let mailresult = -1;
-    //   if(mailresult == 1) {
-    //     console.log("Success to send mail.");
-    //     break;
-    //   }
-    //   mailresult = await notify(req.body.email, "작성완료", result);
-    //   console.log(mailresult);
-    // }
-    // console.log("Fail to send mail.");
-    // return;
+        // User collecion에도 반영해준다.
+        await User.update(
+          { uid: req.body.uid },
+          { $push: { imageURLs: result.imageAttr.imageURL, dids: result._id } }
+        );
 
-  } catch (e) {
-    res.status(500).json({ success: false, error: e.message });
+        notify(req.body.email, "작성", result);
+
+        return res.json({ success: true, result });
+      } catch (e) {
+    console.log(e.message);
+    return res.json({ success: false, error: e.message });
   }
 });
 
 // Update Diary by did
 router.put("/:did", async (req, res) => {
   try {
-    const result = await Diary.findOneAndUpdate(
+    const userData = await User.findOne({ uid: req.body.uid });
+    if (!userData) {
+      return res.json({ success: false, error: "User not found" });
+    }
+    const time = new Date().getTime();
+    await Diary.update(
       { _id: req.params.did },
       {
         imageAttr: req.body.imageAttr,
         textAttr: req.body.textAttr,
         emotion: req.body.emotion,
-        editedAt: new Date().getTime()
+        editedAt: time
       }
     );
-    if (!result) {
-      return res.json({ success: false, error: "Diary not found" });
-    }
-    const isDiaryDuplicate = await Diary.findOne({ uid: req.body.uid, editedAt: req.body.editedAt });
-    if (isDiaryDuplicate) {
-      return res.json({
-        success: false,
-        error: "Maybe duplicate diary of user by comparing uid and editedAt"
-      });
-    }
-    res.json({ success: true });
-
-    notify(req.body.email, "수정완료", result);
-    const time = new Date().getTime();
-    const historyData = await History.create({
+    const result = await Diary.findOne({ _id: req.params.did });
+    
+    new History({
       uid: req.body.uid,
-      did: result._id,
+      did: req.params.did,
       type: "수정",
       writtenAt: time
-    });
-    await historyData.save();
-    return;
-    // for(let cnt=5; cnt>0; cnt--){
-    //   let mailresult = -1;
-    //   if (mailresult == 1) {
-    //     console.log("Success to send mail.");
-    //     break;
-    //   }
-    //   mailresult = notify(req.body.email, "수정완료", result);
-    // }
-    // console.log("Fail to send mail.");
-    // return;
+    }).save(err => console.log("err is :", err));
+  
+    notify(req.body.email, "수정", result);
+    return res.json({ success: true, result});
   } catch (e) {
     res.json({ success: false, error: e.message });
   }
@@ -222,7 +220,7 @@ router.delete("/:did", async (req, res) => {
       return res.json({ success: false, error: "Diary not found" });
     }
 
-    // User collecion에도 반영해준다.
+    // User collection에도 반영해준다.
     await User.update({ uid: result.uid }, { $pull: { dids: req.params.did } });
     res.json({ success: true });
   } catch (e) {

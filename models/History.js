@@ -5,7 +5,7 @@ autoInc.initialize(mongoose.connection);
 const HistorySchema = new mongoose.Schema({
   uid: { type: String, required: true },
   did: { type: String, required: true },
-  historyAt: { type: Number, required: true },
+  writtenAt: { type: Number, required: true },
   type: { type: String, required: true }
 });
 

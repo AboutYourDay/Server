@@ -34,26 +34,43 @@ router.get("/", async (req, res) => {
         // query parameter로 page와 count가 있을 때 히스토리를 페이지마다 넘겨준다
         // /history?uid=1&page=1&count=10
         else if (uid && page && count && !time && !days) {
-          result = await History.find({
-            uid: uid
-          })
-            // 히스토리가 만들어진 날짜 기준으로 내림차순
-            .sort({ writtenAt: -1 })
-            .skip(count * page - count)
-            .limit(count);
-        }
-        // query로 받은 time을 시작점으로 기간 days에 대한 모든 히스토리를 페이지마다 넘겨준다
-        // /history?page=1&time=1575431613&days=10&count=10
-        else if (uid && page && count && time && days) {
-          result = await History.find({
-            uid: uid,
-            writtenAt: { $gte: time, $lte: time + days * 24 * 60 * 60 * 1000 }
-          })
-            // 다이어리가 만들어진 날짜 기준으로 내림차순
-            .sort({ writtenAt: -1 })
-            .skip(count * page - count)
-            .limit(count);
-        }
+               result = await History.find({
+                 uid: uid
+               })
+                 // 히스토리가 만들어진 날짜 기준으로 내림차순
+                 .sort({ writtenAt: -1 })
+                 .skip(count * page - count - 1)
+                 .limit(count);
+             }
+             // query로 받은 time을 시작점으로 기간 days에 대한 모든 히스토리를 페이지마다 넘겨준다
+             // /history?time=1575431613&days=10
+             else if (uid && !page && !count && time && days) {
+               result = await History.find({
+                 uid: uid,
+                 writtenAt: {
+                   $gte: time,
+                   $lte: time + days * 24 * 60 * 60 * 1000
+                 }
+               })
+                 // 다이어리가 만들어진 날짜 기준으로 내림차순
+                 .sort({ writtenAt: -1 });
+             }
+             // query로 받은 time을 시작점으로 기간 days에 대한 모든 히스토리를 페이지마다 넘겨준다
+             // /history?page=1&time=1575431613&days=10&count=10
+             else if (uid && page && count && time && days) {
+               result = await History.find({
+                 uid: uid,
+                 writtenAt: {
+                   $gte: time,
+                   $lte: time + days * 24 * 60 * 60 * 1000
+                 }
+               })
+                 // 다이어리가 만들어진 날짜 기준으로 내림차순
+                 .sort({ writtenAt: -1 })
+                 .skip(count * page - count - 1)
+                 .limit(count);
+             }
+        
         res.json({ success: true, result });
       } catch (e) {
     res.json({ success: false, error: e.message });
