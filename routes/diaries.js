@@ -119,9 +119,17 @@ router.post("/", async (req, res) => {
     if (!userData) {
       return res.json({ success: false, error: "User not found" });
     }
-    const isDiaryDuplicate = await Diary.findOne({ uid: req.body.uid, createdAt: req.body.createdAt });
-    if(isDiaryDuplicate){
-      return res.json({ success: false, error: "Maybe duplicate diary of user by comparing uid and createdAt" });
+    const isDiaryDuplicate = await Diary.findOne({
+      uid: req.body.uid,
+      imageAttr: {
+        imageURL: req.body.imageAttr.imageURL
+      }
+    });
+    if (isDiaryDuplicate) {
+      return res.json({
+        success: false,
+        error: "Maybe duplicate diary of user by comparing uid and imgURL"
+      });
     }
     const time = new Date().getTime();
     const diaryData = await Diary.create({
@@ -134,6 +142,7 @@ router.post("/", async (req, res) => {
     });
     const result = await diaryData.save();
     res.json({ success: true, result });
+    notify(req.body.email, "작성완료", result);
 
     const historyData = await History.create({
       uid: req.body.uid,
@@ -145,8 +154,7 @@ router.post("/", async (req, res) => {
 
     // User collecion에도 반영해준다.
     await User.update({ uid: req.body.uid }, { $push: { imageURLs: result.imageAttr.imageURL, dids: result._id } });
-    notify(req.body.email, "작성완료", result);
-    return;
+    
     
     // for(let cnt=5; cnt>0; cnt--){
     //   let mailresult = -1;

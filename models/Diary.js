@@ -11,6 +11,7 @@ const DiarySchema = new mongoose.Schema({
   },
   textAttr: {
     type: {
+      blur: Number,
       text: String,
       alignHorizontal: String,
       alignVertical: String,
