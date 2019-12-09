@@ -154,19 +154,7 @@ router.post("/", async (req, res) => {
       createdAt: time,
       editedAt: 0
     });
-    const result = await diaryData.save();
-    res.json({ success: true, result });
-    notify(req.body.email, "작성완료", result);
-
-    const time = new Date().getTime();
-    const diaryData = await Diary.create({
-          uid: req.body.uid,
-          imageAttr: req.body.imageAttr,
-          textAttr: req.body.textAttr,
-          emotion: req.body.emotion,
-          createdAt: time,
-          editedAt: 0
-    });
+    
     const result = await diaryData.save();
     console.log(result);
     new History({

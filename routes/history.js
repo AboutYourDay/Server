@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const History = require("../models/Diary");
+const History = require("../models/History");
 const User = require("../models/User");
 
 // get all history
@@ -70,10 +70,10 @@ router.get("/", async (req, res) => {
                  .skip(count * page - count - 1)
                  .limit(count);
              }
-        
+        console.log(result)
         res.json({ success: true, result });
       } catch (e) {
-    res.json({ success: false, error: e.message });
+       res.json({ success: false, error: e.message });
   }
 });
 
