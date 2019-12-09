@@ -80,3 +80,5 @@ router.get("/:did", async (req, res) => {
     res.json({ success: false, error: e.message });
   }
 });
+
+module.exports = router;
