@@ -47,8 +47,8 @@ router.get("/", async (req, res) => {
 
   const page = req.query.page ? parseInt(req.query.page) : null;
   const count = req.query.count ? parseInt(req.query.count) : null;
-  const time = req.query.time ? parseInt(req.query.time) : null;
-  const days = req.query.days ? parseInt(req.query.days) : null;
+  const start = req.query.start ? parseInt(req.query.start) : null;
+  const end = req.query.end ? parseInt(req.query.end) : null;
   let result = null;
   try {
     //해당 uid의 user가 diary를 하나도 가지고 있지 않을 때
@@ -62,12 +62,12 @@ router.get("/", async (req, res) => {
         error: "User doesn't have any diaries"
       });
     }
-    if (uid && !count && !page && !time && !days) {
+    if (uid && !count && !page && !start && !end) {
       result = await Diary.find({ uid: uid });
     }
     // query parameter로 time과 days가 없을 때 모든 다이어리를 페이지마다 넘겨준다
     // /diary?page=1&count=10
-    else if (uid && page && count && !time && !days) {
+    else if (uid && page && count && !start && !end) {
            result = await Diary.find({
              uid: uid
            })
@@ -78,26 +78,26 @@ router.get("/", async (req, res) => {
          }
          // query로 받은 time을 시작점으로 기간 days에 대한 모든 다이어리를 페이지마다 넘겨준다
          // /diary?time=1575431613&days=10
-         else if (uid && !page && !count && time && days) {
+         else if (uid && !page && !count && start && end) {
            result = await Diary.find({
              uid: uid,
-             createdAt: { $gte: time, $lte: time + days * 24 * 60 * 60 * 1000 }
+             createdAt: { $gte: start , $lt: end }
            })
              // 다이어리가 만들어진 날짜 기준으로 내림차순
              .sort({ createdAt: -1 });
          }
          // query로 받은 time을 시작점으로 기간 days에 대한 모든 다이어리를 페이지마다 넘겨준다
          // /diary?page=1&time=1575431613&days=10&count=10
-         else if (uid && page && count && time && days) {
-           result = await Diary.find({
-             uid: uid,
-             createdAt: { $gte: time, $lte: time + days * 24 * 60 * 60 * 1000 }
-           })
-             // 다이어리가 만들어진 날짜 기준으로 내림차순
-             .sort({ createdAt: -1 })
-             .skip(count * page - count - 1)
-             .limit(count);
-         }
+        //  else if (uid && page && count && time && days) {
+        //    result = await Diary.find({
+        //      uid: uid,
+        //      createdAt: { $gte: time, $lte: time + (days * 24 * 60 * 60 * 1000) }
+        //    })
+        //      // 다이어리가 만들어진 날짜 기준으로 내림차순
+        //      .sort({ createdAt: -1 })
+        //      .skip(count * page - count - 1)
+        //      .limit(count);
+        //  }
     res.json({ success: true, result });
   } catch (e) {
     res.json({ success: false, error: e.message });
