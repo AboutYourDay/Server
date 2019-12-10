@@ -68,17 +68,19 @@ router.get("/", async (req, res) => {
     // query parameter로 time과 days가 없을 때 모든 다이어리를 페이지마다 넘겨준다
     // /diary?page=1&count=10
     else if (uid && page && count && !time && !days) {
+      console.log('1');
            result = await Diary.find({
              uid: uid
            })
              // 다이어리가 만들어진 날짜 기준으로 내림차순
              .sort({ createdAt: -1 })
-             .skip(count * page - count - 1)
+             .skip(page === 1 ? 0 : count * page - count - 1)
              .limit(count);
          }
          // query로 받은 time을 시작점으로 기간 days에 대한 모든 다이어리를 페이지마다 넘겨준다
          // /diary?time=1575431613&days=10
          else if (uid && !page && !count && time && days) {
+          console.log('2');
            result = await Diary.find({
              uid: uid,
              createdAt: { $gte: time, $lte: time + days * 24 * 60 * 60 * 1000 }
@@ -99,7 +101,7 @@ router.get("/", async (req, res) => {
              .limit(count);
          }
     
-    
+    console.log('wtf', result);
     res.json({ success: true, result });
   } catch (e) {
     res.json({ success: false, error: e.message });
@@ -165,7 +167,7 @@ router.post("/", async (req, res) => {
     }).save(err => console.log("err is :", err));
 
     // User collection에도 반영해준다.
-    await User.update({ uid: req.body.uid }, { $push: { imageURLs: result.imageAttr.imageURL, dids: result._id } });
+    await User.updateOne({ uid: req.body.uid }, { $push: { imageURLs: result.imageAttr.imageURL, dids: result._id } });
 
     notify(req.body.email, "작성", result);
 
@@ -184,7 +186,7 @@ router.put("/:did", async (req, res) => {
       return res.json({ success: false, error: "User not found" });
     }
     const time = new Date().getTime();
-    await Diary.update(
+    await Diary.updateOne(
       { _id: req.params.did },
       {
         imageAttr: req.body.imageAttr,
@@ -218,7 +220,7 @@ router.delete("/:did", async (req, res) => {
     }
 
     // User collection에도 반영해준다.
-    await User.update({ uid: result.uid }, { $pull: { dids: req.params.did } });
+    await User.updateOne({ uid: result.uid }, { $pull: { dids: req.params.did } });
     res.json({ success: true });
   } catch (e) {
     res.json({ success: false, error: e.message });
